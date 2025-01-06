@@ -71,6 +71,8 @@
 #include <mutex>
 #include <algorithm>
 
+#include "..\Vanguard\VanguardHelpers.h" // RTC_Hijack
+
 static bool game_started;
 
 int insetLeft, insetRight, insetTop, insetBottom;
@@ -557,6 +559,10 @@ void gui_start_game(const std::string& path)
 
 	scanner.stop();
 	gui_setState(GuiState::Loading);
+
+	// RTC_Hijack: call Vanguard function
+	CallImportedFunction<void>((char*)"LOADGAMESTART", path);
+
 	gameLoader.load(path);
 }
 
@@ -571,6 +577,9 @@ void gui_stop_game(const std::string& message)
 		reset_vmus();
 		if (!message.empty())
 			gui_error("Flycast has stopped.\n\n" + message);
+
+		// RTC_Hijack: call Vanguard function
+		CallImportedFunction<void>((char*)"GAMECLOSED");
 	}
 	else
 	{
@@ -2776,14 +2785,17 @@ static void gui_settings_advanced()
     header("Other");
     {
     	OptionCheckbox("HLE BIOS", config::UseReios, "Force high-level BIOS emulation");
-        OptionCheckbox("Multi-threaded emulation", config::ThreadedRendering,
-        		"Run the emulated CPU and GPU on different threads");
+		{
+			DisabledScope scope(true); // RTC_Hijack: permanently disable multithreaded emulation
+			OptionCheckbox("Multi-threaded emulation", config::ThreadedRendering,
+				"Run the emulated CPU and GPU on different threads");
+		}
 #ifndef __ANDROID
         OptionCheckbox("Serial Console", config::SerialConsole,
         		"Dump the Dreamcast serial console to stdout");
 #endif
 		{
-			DisabledScope scope(game_started);
+			DisabledScope scope(true); // RTC_Hijack: permanently disable 32MB RAM Mod
 			OptionCheckbox("Dreamcast 32MB RAM Mod", config::RamMod32MB,
 				"Enables 32MB RAM Mod for Dreamcast. May affect compatibility");
 		}

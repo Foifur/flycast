@@ -21,7 +21,7 @@
 
 namespace elan {
 
-void init();
+    void init();
 void reset(bool hard);
 void term();
 
@@ -31,7 +31,14 @@ void vmem_map(u32 base);
 void serialize(Serializer& ser);
 void deserialize(Deserializer& deser);
 
+constexpr u32 ERAM_SIZE_MAX = 32_MB;
+constexpr u32 ELAN_RAM_MASK = ERAM_SIZE_MAX - 1;
+
+// RTC_Hijack: add read/write to header
+template<typename T> T DYNACALL read_elanram(u32 addr);
+
+template<typename T> void DYNACALL write_elanram(u32 addr, T data);
+
 extern u8 *RAM;
 extern u32 ERAM_SIZE;
-constexpr u32 ERAM_SIZE_MAX = 32_MB;
 }

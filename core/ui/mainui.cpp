@@ -30,6 +30,9 @@
 #include <chrono>
 #include <thread>
 
+#include "..\Vanguard\VanguardHelpers.h" // RTC_Hijack
+#include "..\core\hw\sh4\sh4_if.h"
+
 static bool mainui_enabled;
 u32 MainFrameCount;
 static bool forceReinit;
@@ -37,6 +40,15 @@ static bool forceReinit;
 bool mainui_rend_frame()
 {
 	FC_PROFILE_SCOPE;
+
+	// RTC_Hijack: call Vanguard function
+	if (VanguardClient::ok_to_corestep && Sh4cntx.sr.BL == 0)
+	{
+		CallImportedFunction<void>((char*)"CORESTEP");
+	}
+
+	if (VanguardClient::close_emulator)
+		dc_exit();
 
 	os_DoEvents();
 	os_UpdateInputState();

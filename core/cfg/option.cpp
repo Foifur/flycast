@@ -102,7 +102,7 @@ Option<bool> VSync("rend.vsync", true);
 Option<int64_t> PixelBufferSize("rend.PixelBufferSize", 512_MB);
 Option<int> AnisotropicFiltering("rend.AnisotropicFiltering", 1);
 Option<int> TextureFiltering("rend.TextureFiltering", 0); // Default
-Option<bool> ThreadedRendering("rend.ThreadedRendering", true);
+Option<bool> ThreadedRendering("rend.ThreadedRendering", false); // RTC_Hijack: default to false
 Option<bool> DupeFrames("rend.DupeFrames", false);
 Option<int> PerPixelLayers("rend.PerPixelLayers", 32);
 Option<bool> NativeDepthInterpolation("rend.NativeDepthInterpolation", false);
@@ -130,7 +130,7 @@ Option<bool> OpenGlChecks("OpenGlChecks", false, "validate");
 
 Option<std::vector<std::string>, false> ContentPath("Dreamcast.ContentPath");
 Option<bool, false> HideLegacyNaomiRoms("Dreamcast.HideLegacyNaomiRoms", true);
-Option<bool, false> UploadCrashLogs("UploadCrashLogs", true);
+Option<bool, false> UploadCrashLogs("UploadCrashLogs", false); // RTC_Hijack: default to false
 Option<bool, false> DiscordPresence("DiscordPresence", true);
 #if defined(__ANDROID__) && !defined(LIBRETRO)
 Option<bool, false> UseSafFilePicker("UseSafFilePicker", true);

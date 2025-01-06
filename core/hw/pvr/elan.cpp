@@ -68,7 +68,8 @@
 
 namespace elan {
 
-constexpr u32 ELAN_RAM_MASK = ERAM_SIZE_MAX - 1;
+// RTC_Hijack: moved to header file
+//constexpr u32 ELAN_RAM_MASK = ERAM_SIZE_MAX - 1;
 
 static addrspace::handler elanRegHandler;
 static addrspace::handler elanCmdHandler;
@@ -1758,14 +1759,15 @@ static void DYNACALL write_elancmd(u32 addr, u32 data)
 	}
 }
 
+// RTC_Hijack: moved to header file
 template<typename T>
-static T DYNACALL read_elanram(u32 addr)
+T DYNACALL read_elanram(u32 addr)
 {
 	return *(T *)&RAM[addr & ELAN_RAM_MASK];
 }
 
 template<typename T>
-static void DYNACALL write_elanram(u32 addr, T data)
+void DYNACALL write_elanram(u32 addr, T data)
 {
 	*(T *)&RAM[addr & ELAN_RAM_MASK] = data;
 }

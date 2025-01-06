@@ -29,6 +29,8 @@
 #include "emulator.h"
 #include "oslib/storage.h"
 
+#include "..\Vanguard\VanguardHelpers.h" // RTC_Hijack
+
 const WidescreenCheat CheatManager::widescreen_cheats[] =
 {
 		{ "T36803N",	nullptr,	{ 0xBC2CC }, { 0xC00 } },			// 102 Dalmatians (USA)

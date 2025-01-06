@@ -70,6 +70,8 @@ option(ENABLE_GDB_SERVER "Build with GDB debugging support" OFF)
 option(ENABLE_DC_PROFILER "Build with support for target machine (SH4) profiler" OFF)
 option(ENABLE_FC_PROFILER "Build with support for host app (Flycast) profiler" OFF)
 option(USE_DISCORD "Use Discord Presence API" OFF)
+option(USE_LIBCDIO "Use libcdio for CDROM access" OFF)
+option(USE_VANGUARD "Use Vanguard Implementation" ON)
 
 if(IOS AND NOT LIBRETRO)
 	set(USE_VULKAN OFF CACHE BOOL "Force vulkan off" FORCE)
@@ -1889,6 +1891,13 @@ if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT LIBRETRO)
 			RENAME ${PROJECT_NAME}.png
 		)
 	endforeach()
+endif()
+
+if(USE_VANGUARD)
+	target_sources(${PROJECT_NAME} PRIVATE
+			core/Vanguard/VanguardHelpers.h
+			core/Vanguard/VanguardHelpers.cpp
+			core/Vanguard/VanguardClientInitializer.h)
 endif()
 
 if(${CMAKE_GENERATOR} MATCHES "^Xcode.*|^Visual Studio.*")
