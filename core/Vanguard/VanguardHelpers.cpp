@@ -4,10 +4,10 @@
 #include "..\core\hw\sh4\sh4_mem.h"
 #include "..\core\hw\pvr\pvr_mem.h"
 #include "..\core\hw\aica\aica_if.h"
+#include "..\core\hw\flashrom\nvmem.h"
 #include "..\core\hw\pvr\elan.h"
 #include "..\core\emulator.h"
 #include "..\core\ui\gui_util.h"
-#include "..\core\input\gamepad_device.h"
 
 
 unsigned char Vanguard_peekbyte(long long addr, int selection)
@@ -34,6 +34,7 @@ unsigned char Vanguard_peekbyte(long long addr, int selection)
 		// ELAN RAM Read
 		case 3:
 			byte = elan::read_elanram<u8>(addr);
+			break;
 		default:
 			break;
 	}
@@ -60,8 +61,10 @@ void Vanguard_pokebyte(long long addr, unsigned char val, int selection)
 		case 2:
 			aica::writeAicaReg(addr, val);
 			break;
+		// ELAN RAM Write
 		case 3:
 			elan::write_elanram(addr, val);
+			break;
 		default:
 			break;
 
@@ -94,16 +97,16 @@ void Vanguard_savesavestate(BSTR filename, bool wait)
     }
 }
 
-
+// Naomi games weren't happy when you tried to load a savestate right away, so we'll set a flag instead
+bool VanguardClient::load_savestate = false;
+std::string VanguardClient::state_to_load;
 void Vanguard_loadsavestate(BSTR filename)
 {
   // Convert the BSTR sent by Vanguard to std::string
   std::string filename_converted = BSTRToString(filename);
 
-  emu.stop();
-  dc_Vanguardloadstate(filename_converted);
-  emu.start();
-  EventManager::event(Event::Resume);
+  VanguardClient::state_to_load = filename_converted;
+  VanguardClient::load_savestate = true;
 }
 
 
@@ -160,13 +163,7 @@ void Vanguard_forceStop()
 std::string VanguardClient::system_core = "EMPTY";
 char* Vanguard_getSystemCore()
 {
-	const char* output_name = VanguardClient::system_core.c_str();
-	size_t ulSize = strlen(output_name + sizeof(char));
-	char* returnValue = NULL;
-
-	returnValue = (char*)::CoTaskMemAlloc(ulSize);
-	strcpy(returnValue, output_name);
-	return returnValue;
+	return VanguardClient::system_core.data();
 }
 
 //converts a BSTR received from the Vanguard client to std::string

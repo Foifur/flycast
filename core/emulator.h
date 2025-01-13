@@ -173,10 +173,6 @@ public:
 	 */
 	bool restartCpu();
 
-private:
-	bool checkStatus(bool wait = false);
-	void runInternal();
-
 	// RTC_Hijack: move to public
 	enum State {
 		Uninitialized = 0,

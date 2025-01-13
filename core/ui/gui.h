@@ -49,6 +49,7 @@ void gui_start_game(const std::string& path);
 void gui_error(const std::string& what);
 void gui_setOnScreenKeyboardCallback(void (*callback)(bool show));
 void gui_loadState();
+void gui_VanguardloadState(std::string path);
 void gui_saveState(bool stopRestart = true);
 std::string gui_getCurGameBoxartUrl();
 void gui_takeScreenshot();

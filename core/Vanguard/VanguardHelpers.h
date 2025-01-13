@@ -38,6 +38,9 @@ public:
   inline static bool pauseUntilCorrupt;
   static bool close_emulator;
   static std::string system_core;
+
+  static bool load_savestate;
+  static std::string state_to_load;
 };
 
 inline HINSTANCE vanguard = LoadLibraryA("../RTCV/VanguardHook.dll");

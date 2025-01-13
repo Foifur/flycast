@@ -463,6 +463,7 @@ static void setPlatform(int platform)
 		settings.platform.aram_size = 8_MB;
 		settings.platform.bios_size = 2_MB;
 		settings.platform.flash_size = 128_KB;	// sram
+		VanguardClient::system_core = "SystemSP"; // RTC_Hijack
 		break;
 	default:
 		die("Unsupported platform");

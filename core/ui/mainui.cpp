@@ -41,14 +41,23 @@ bool mainui_rend_frame()
 {
 	FC_PROFILE_SCOPE;
 
+	// RTC_Hijack: close emulator here
+	if (VanguardClient::close_emulator)
+		dc_exit();
+
+	// RTC_Hijack: load savestate here
+	if (VanguardClient::load_savestate)
+	{
+		gui_VanguardloadState(VanguardClient::state_to_load);
+		Vanguard_resume();
+		VanguardClient::load_savestate = false;
+	}
+
 	// RTC_Hijack: call Vanguard function
-	if (VanguardClient::ok_to_corestep && Sh4cntx.sr.BL == 0)
+	if (VanguardClient::ok_to_corestep)
 	{
 		CallImportedFunction<void>((char*)"CORESTEP");
 	}
-
-	if (VanguardClient::close_emulator)
-		dc_exit();
 
 	os_DoEvents();
 	os_UpdateInputState();

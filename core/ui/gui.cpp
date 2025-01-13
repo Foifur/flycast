@@ -558,12 +558,14 @@ void gui_start_game(const std::string& path)
     chat.reset();
 
 	scanner.stop();
-	gui_setState(GuiState::Loading);
 
 	// RTC_Hijack: call Vanguard function
 	CallImportedFunction<void>((char*)"LOADGAMESTART", path);
 
+	gui_setState(GuiState::Loading);
+
 	gameLoader.load(path);
+	gui_setState(GuiState::Loading);
 }
 
 void gui_stop_game(const std::string& message)
@@ -3761,6 +3763,23 @@ void gui_loadState()
 			dc_loadstate(config::SavestateSlot);
 			emu.start();
 		} catch (const FlycastException& e) {
+			gui_stop_game(e.what());
+		}
+	}
+}
+
+// RTC_Hijack: add special version of gui_loadState() to accept path to savestate file
+void gui_VanguardloadState(std::string path)
+{
+	const LockGuard lock(guiMutex);
+	if (gui_state == GuiState::Closed && savestateAllowed())
+	{
+		try {
+			emu.stop();
+			dc_Vanguardloadstate(path);
+			emu.start();
+		}
+		catch (const FlycastException& e) {
 			gui_stop_game(e.what());
 		}
 	}
