@@ -558,14 +558,12 @@ void gui_start_game(const std::string& path)
     chat.reset();
 
 	scanner.stop();
+	gui_setState(GuiState::Loading);
 
 	// RTC_Hijack: call Vanguard function
 	CallImportedFunction<void>((char*)"LOADGAMESTART", path);
 
-	gui_setState(GuiState::Loading);
-
 	gameLoader.load(path);
-	gui_setState(GuiState::Loading);
 }
 
 void gui_stop_game(const std::string& message)
@@ -3094,14 +3092,17 @@ static void gui_display_settings()
 
 void os_notify(const char *msg, int durationMs, const char *details)
 {
-	if (gui_state != GuiState::Closed)
+	if (CallImportedFunction<bool>((char*)"RTCOSDENABLED"))
 	{
-		std::lock_guard<std::mutex> _{osd_message_mutex};
-		osd_message = msg;
-		osd_message_end = getTimeMs() + durationMs;
-	}
-	else {
-		toast.show(msg, details != nullptr ? details : "", durationMs);
+		if (gui_state != GuiState::Closed)
+		{
+			std::lock_guard<std::mutex> _{ osd_message_mutex };
+			osd_message = msg;
+			osd_message_end = getTimeMs() + durationMs;
+		}
+		else {
+			toast.show(msg, details != nullptr ? details : "", durationMs);
+		}
 	}
 }
 
