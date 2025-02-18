@@ -1897,7 +1897,10 @@ if(USE_VANGUARD)
 	target_sources(${PROJECT_NAME} PRIVATE
 			core/Vanguard/VanguardHelpers.h
 			core/Vanguard/VanguardHelpers.cpp
-			core/Vanguard/VanguardClientInitializer.h)
+			core/Vanguard/VanguardClientInitializer.h
+			core/Vanguard/VanguardJsonParser.h
+			core/Vanguard/VanguardJsonParser.cpp
+			core/Vanguard/VanguardEmuSettings.h)
 endif()
 
 if(${CMAKE_GENERATOR} MATCHES "^Xcode.*|^Visual Studio.*")

@@ -1,14 +1,20 @@
-#include "..\core\Vanguard\VanguardHelpers.h"
-#include "..\core\Vanguard\VanguardClientInitializer.h"
+#include "Vanguard/VanguardHelpers.h"
+#include "Vanguard/VanguardClientInitializer.h"
+#include "Vanguard/VanguardJsonParser.h"
+#include "Vanguard/VanguardEmuSettings.h"
 
-#include "..\core\hw\sh4\sh4_mem.h"
-#include "..\core\hw\pvr\pvr_mem.h"
-#include "..\core\hw\aica\aica_if.h"
-#include "..\core\hw\flashrom\nvmem.h"
-#include "..\core\hw\pvr\elan.h"
-#include "..\core\emulator.h"
-#include "..\core\ui\gui_util.h"
+#include "hw\sh4\sh4_mem.h"
+#include "hw\pvr\pvr_mem.h"
+#include "hw\aica\aica_if.h"
+#include "hw\flashrom\nvmem.h"
+#include "hw\pvr\elan.h"
+#include "emulator.h"
+#include "ui\gui_util.h"
 
+#include <codecvt>
+#include <sstream>
+
+void FormatJsonData(VanguardSettings& settings, std::ostringstream& json_string);
 
 unsigned char Vanguard_peekbyte(long long addr, int selection)
 {
@@ -163,16 +169,62 @@ void Vanguard_forceStop()
 std::string VanguardClient::system_core = "EMPTY";
 char* Vanguard_getSystemCore()
 {
-	return VanguardClient::system_core.data();
+	// store the output as a string, then convert it to char*
+	std::string tmp = VanguardClient::system_core;
+
+	std::vector<char> _output(tmp.begin(), tmp.end());
+	_output.push_back('\0');
+
+	char* output = (char*)LocalAlloc(LMEM_FIXED, _output.size() + 1);
+	if (!output)
+		return NULL;
+
+	memcpy(output, _output.data(), _output.size() + 1);
+
+	return output;
+}
+
+// Saves all required emulator settings and returns it to the hook DLL to store with the savestate
+char* Vanguard_saveEmuSettings()
+{
+	// create a new settings class and store all values
+	VanguardSettings _settings;
+	_settings.SaveSettings();
+
+	// write the json data to a stringstream
+	std::ostringstream out;
+	FormatJsonData(_settings, out);
+
+	// store the output as a string, then convert it to char*
+	std::string tmp = out.str();
+
+	std::vector<char> _output(tmp.begin(), tmp.end());
+	_output.push_back('\0');
+
+	char* output = (char*)LocalAlloc(LMEM_FIXED, _output.size() + 1);
+	if (!output)
+		return NULL;
+
+	memcpy(output, _output.data(), _output.size() + 1);
+	return output;
+}
+
+// Loads all required emulator settings sent by the hook DLL before loading the savestate
+void Vanguard_loadEmuSettings(BSTR settings)
+{
+	JsonParser::JsonValue parsed_settings = JsonParser::ParseJson(settings);
+
+	VanguardSettings _settings;
+	_settings.LoadSettings(parsed_settings);
 }
 
 //converts a BSTR received from the Vanguard client to std::string
 std::string BSTRToString(BSTR string)
 {
-  std::wstring ws(string, SysStringLen(string));
-  //std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-  std::string converted_string = _bstr_t(string);
-  return converted_string;
+	std::wstring ws(string, SysStringLen(string));
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+	std::string converted_string = converter.to_bytes(ws);
+	return converted_string;
 }
 
 std::string getDirectory()
@@ -181,4 +233,50 @@ std::string getDirectory()
   GetModuleFileNameA(NULL, buffer, MAX_PATH);
   std::string::size_type pos = std::string(buffer).find_last_of("\\/");
   return std::string(buffer).substr(0, pos);
+}
+
+// formats the saved settings into a JSON format
+void FormatJsonData(VanguardSettings& settings, std::ostringstream& json_string)
+{
+	// beginning of json string
+	json_string << "{\n";
+
+	// iterate through all settings
+	for (int i = 0; i < settings.array.size(); i++)
+	{
+		// flycast stores bools as "yes" and "no" so we need this hack
+		if (std::holds_alternative<bool>(settings.array[i].second))
+		{
+			if (settings.to_string(settings.array[i].second).find("false"))
+			{
+				json_string << "  \"" << settings.array[i].first
+					<< "\": " << "yes";
+			}
+			else
+			{
+				json_string << "  \"" << settings.array[i].first
+					<< "\": " << "no";
+			}
+		}
+		else
+		{
+			json_string << "  \"" << settings.array[i].first
+				<< "\": " << settings.to_string(settings.array[i].second);
+		}
+
+		// if the value is a whole number float, add ".0" so the parser understands
+		if (std::holds_alternative<float>(settings.array[i].second))
+		{
+			json_string << ".0";
+		}
+
+		// only add a comma if there are more values to be parsed
+		if (i + 1 < settings.array.size())
+			json_string << ",\n";
+		else
+			json_string << "\n";
+	}
+
+	// end of json string
+	json_string << "}";
 }

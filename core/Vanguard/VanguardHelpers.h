@@ -30,6 +30,10 @@ EXPORT void Vanguard_forceStop();
 
 EXPORT char* Vanguard_getSystemCore();
 
+EXPORT char* Vanguard_saveEmuSettings();
+
+EXPORT void Vanguard_loadEmuSettings(BSTR settings);
+
 class VanguardClient
 {
 public:
