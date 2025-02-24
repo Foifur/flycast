@@ -1840,6 +1840,8 @@ static void gui_settings_general()
 #if USE_DISCORD
 	OptionCheckbox("Discord Presence", config::DiscordPresence, "Show which game you are playing on Discord");
 #endif
+// RTC_Hijack: nuke retro achievements
+/*
 #ifdef USE_RACHIEVEMENTS
 	OptionCheckbox("Enable RetroAchievements", config::EnableAchievements, "Track your game achievements using RetroAchievements.org");
 	{
@@ -1892,6 +1894,7 @@ static void gui_settings_general()
 		ImGui::Unindent();
 	}
 #endif
+*/
 }
 
 static void gui_settings_controls(bool& maple_devices_changed)
