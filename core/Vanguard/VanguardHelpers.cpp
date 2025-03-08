@@ -78,7 +78,7 @@ void Vanguard_pokebyte(long long addr, unsigned char val, int selection)
 
 }
 
-bool VanguardClient::ok_to_corestep = false;
+bool VanguardClient::ok_to_corestep = true;
 void Vanguard_pause(bool pauseUntilCorrupt)
 {
 	EventManager::event(Event::Pause);
@@ -139,6 +139,8 @@ void Vanguard_loadROM(BSTR filename)
     ::TranslateMessage(&msg);
     ::DispatchMessage(&msg);
   }
+
+  VanguardClient::ok_to_corestep = true; // We're good to peek/pokebyte now
 
   Sleep(100);  // Give the emu thread a chance to recover
   
