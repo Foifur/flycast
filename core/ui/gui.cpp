@@ -3156,12 +3156,15 @@ static void gui_display_settings()
 			gui_settings_audio();
 			ImGui::EndTabItem();
 		}
+		// RTC_Hijack: Hide this tab from the settings, we don't want someone connecting to any servers
+		/*
 		if (ImGui::BeginTabItem(ICON_FA_WIFI " Network"))
 		{
 			ImguiStyleVar _(ImGuiStyleVar_FramePadding, normal_padding);
 			gui_settings_network();
 			ImGui::EndTabItem();
 		}
+		*/
 		if (ImGui::BeginTabItem(ICON_FA_MICROCHIP " Advanced"))
 		{
 			ImguiStyleVar _(ImGuiStyleVar_FramePadding, normal_padding);
