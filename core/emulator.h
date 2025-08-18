@@ -29,6 +29,8 @@
 #include <vector>
 #include <time.h>
 
+
+
 void loadGameSpecificSettings();
 void SaveSettings();
 
@@ -37,7 +39,6 @@ void flycast_term();
 void dc_exit();
 void dc_savestate(int index = 0, const u8 *pngData = nullptr, u32 pngSize = 0);
 void dc_loadstate(int index = 0);
-void dc_loadstate(Deserializer& deser);
 void dc_Vanguardsavestate(std::string path, const u8* pngData = nullptr, u32 pngSize = 0);
 void dc_Vanguardloadstate(std::string path);
 time_t dc_getStateCreationDate(int index);
