@@ -73,6 +73,8 @@
 #include <mutex>
 #include <algorithm>
 
+#include "..\Vanguard\VanguardHelpers.h" // RTC_Hijack
+
 static bool game_started;
 
 int insetLeft, insetRight, insetTop, insetBottom;
@@ -565,6 +567,10 @@ void gui_start_game(const std::string& path)
 
 	scanner.stop();
 	gui_setState(GuiState::Loading);
+
+	// RTC_Hijack: call Vanguard function
+	CallImportedFunction<void>((char*)"LOADGAMESTART", path);
+
 	gameLoader.load(path);
 }
 
@@ -579,6 +585,9 @@ void gui_stop_game(const std::string& message)
 		reset_vmus();
 		if (!message.empty())
 			gui_error("Flycast has stopped.\n\n" + message);
+
+		// RTC_Hijack: call Vanguard function
+		CallImportedFunction<void>((char*)"GAMECLOSED");
 	}
 	else
 	{
@@ -1888,6 +1897,8 @@ static void gui_settings_general()
 #if USE_DISCORD
 	OptionCheckbox("Discord Presence", config::DiscordPresence, "Show which game you are playing on Discord");
 #endif
+// RTC_Hijack: nuke retro achievements
+/*
 #ifdef USE_RACHIEVEMENTS
 	OptionCheckbox("Enable RetroAchievements", config::EnableAchievements, "Track your game achievements using RetroAchievements.org");
 	{
@@ -1940,6 +1951,7 @@ static void gui_settings_general()
 		ImGui::Unindent();
 	}
 #endif
+*/
 }
 
 static void gui_settings_controls(bool& maple_devices_changed)
@@ -2885,14 +2897,17 @@ static void gui_settings_advanced()
     header("Other");
     {
     	OptionCheckbox("HLE BIOS", config::UseReios, "Force high-level BIOS emulation");
-        OptionCheckbox("Multi-threaded emulation", config::ThreadedRendering,
-        		"Run the emulated CPU and GPU on different threads");
-#if !defined(__ANDROID) && !defined(GDB_SERVER)
+		{
+			DisabledScope scope(true); // RTC_Hijack: permanently disable multithreaded emulation
+			OptionCheckbox("Multi-threaded emulation", config::ThreadedRendering,
+				"Run the emulated CPU and GPU on different threads");
+		}
+#ifndef __ANDROID
         OptionCheckbox("Serial Console", config::SerialConsole,
         		"Dump the Dreamcast serial console to stdout");
 #endif
 		{
-			DisabledScope scope(game_started);
+			DisabledScope scope(true); // RTC_Hijack: permanently disable 32MB RAM Mod
 			OptionCheckbox("Dreamcast 32MB RAM Mod", config::RamMod32MB,
 				"Enables 32MB RAM Mod for Dreamcast. May affect compatibility");
 		}
@@ -3178,14 +3193,17 @@ static void gui_display_settings()
 
 void os_notify(const char *msg, int durationMs, const char *details)
 {
-	if (gui_state != GuiState::Closed)
+	if (CallImportedFunction<bool>((char*)"RTCOSDENABLED"))
 	{
-		std::lock_guard<std::mutex> _{osd_message_mutex};
-		osd_message = msg;
-		osd_message_end = getTimeMs() + durationMs;
-	}
-	else {
-		toast.show(msg, details != nullptr ? details : "", durationMs);
+		if (gui_state != GuiState::Closed)
+		{
+			std::lock_guard<std::mutex> _{ osd_message_mutex };
+			osd_message = msg;
+			osd_message_end = getTimeMs() + durationMs;
+		}
+		else {
+			toast.show(msg, details != nullptr ? details : "", durationMs);
+		}
 	}
 }
 
@@ -3864,6 +3882,23 @@ void gui_loadState()
 			dc_loadstate(config::SavestateSlot);
 			emu.start();
 		} catch (const FlycastException& e) {
+			gui_stop_game(e.what());
+		}
+	}
+}
+
+// RTC_Hijack: add special version of gui_loadState() to accept path to savestate file
+void gui_VanguardloadState(std::string path)
+{
+	const LockGuard lock(guiMutex);
+	if (gui_state == GuiState::Closed && savestateAllowed())
+	{
+		try {
+			emu.stop();
+			dc_Vanguardloadstate(path);
+			emu.start();
+		}
+		catch (const FlycastException& e) {
 			gui_stop_game(e.what());
 		}
 	}

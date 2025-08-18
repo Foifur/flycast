@@ -191,6 +191,75 @@ fail:
 	// delete failed savestate?
 }
 
+// RTC_Hijack: custom savestate function to take a path input instead of an index
+void dc_Vanguardsavestate(std::string path, const u8* pngData, u32 pngSize)
+{
+	if (settings.network.online)
+		return;
+
+	lastStateFile.clear();
+
+	Serializer ser;
+	dc_serialize(ser);
+
+	void* data = malloc(ser.size());
+	if (data == nullptr)
+	{
+		WARN_LOG(SAVESTATE, "Failed to save state - could not malloc %d bytes", (int)ser.size());
+		os_notify("Save state failed - memory full", 5000);
+		return;
+	}
+
+	ser = Serializer(data, ser.size());
+	dc_serialize(ser);
+
+	std::string filename = path;
+	FILE* f = nowide::fopen(filename.c_str(), "wb");
+	if (f == nullptr)
+	{
+		WARN_LOG(SAVESTATE, "Failed to save state - could not open %s for writing", filename.c_str());
+		os_notify("Cannot open save file", 5000);
+		free(data);
+		return;
+	}
+
+	RZipFile zipFile;
+	SavestateHeader header;
+	header.init();
+	header.pngSize = pngSize;
+	if (std::fwrite(&header, sizeof(header), 1, f) != 1)
+		goto fail;
+	if (pngSize > 0 && std::fwrite(pngData, 1, pngSize, f) != pngSize)
+		goto fail;
+
+#if 0
+	// Uncompressed savestate
+	std::fwrite(data, 1, ser.size(), f);
+	std::fclose(f);
+#else
+	if (!zipFile.Open(f, true))
+		goto fail;
+	if (zipFile.Write(data, ser.size()) != ser.size())
+		goto fail;
+	zipFile.Close();
+#endif
+
+	free(data);
+	NOTICE_LOG(SAVESTATE, "Saved state to %s size %d", filename.c_str(), (int)ser.size());
+	os_notify("State saved", 2000);
+	return;
+
+fail:
+	WARN_LOG(SAVESTATE, "Failed to save state - error writing %s", filename.c_str());
+	os_notify("Error saving state", 5000);
+	if (zipFile.rawFile() != nullptr)
+		zipFile.Close();
+	else
+		std::fclose(f);
+	free(data);
+	// delete failed savestate?
+}
+
 void dc_loadstate(int index)
 {
 	if (settings.raHardcoreMode)
@@ -277,6 +346,94 @@ void dc_loadstate(int index)
 			// Note: this isn't true for RA savestates
 			WARN_LOG(SAVESTATE, "Savestate size %d but only %d bytes used", total_size, (int)deser.size());
 	} catch (const Deserializer::Exception& e) {
+		ERROR_LOG(SAVESTATE, "%s", e.what());
+		os_notify("Failed to load state", 5000, e.what());
+	}
+
+	free(data);
+}
+
+// RTC_Hijack: Custom loadstate function to take a path input instead of an index
+void dc_Vanguardloadstate(std::string path)
+{
+	if (settings.raHardcoreMode)
+		return;
+	u32 total_size = 0;
+
+	std::string filename = path;
+	FILE* f = hostfs::storage().openFile(filename, "rb");
+	if (f == nullptr)
+	{
+		WARN_LOG(SAVESTATE, "Failed to load state - could not open %s for reading", filename.c_str());
+		os_notify("Save state not found", 2000);
+		return;
+	}
+	SavestateHeader header;
+	if (std::fread(&header, sizeof(header), 1, f) == 1)
+	{
+		if (!header.isValid())
+			// seek to beginning of file if this isn't a valid header (legacy savestate)
+			std::fseek(f, 0, SEEK_SET);
+		else
+			// skip png data
+			std::fseek(f, header.pngSize, SEEK_CUR);
+	}
+	else {
+		// probably not a valid savestate but we'll fail later
+		std::fseek(f, 0, SEEK_SET);
+	}
+
+	RZipFile zipFile;
+	if (zipFile.Open(f, false)) {
+		total_size = (u32)zipFile.Size();
+	}
+	else
+	{
+		long pos = std::ftell(f);
+		std::fseek(f, 0, SEEK_END);
+		total_size = (u32)std::ftell(f) - pos;
+		std::fseek(f, pos, SEEK_SET);
+	}
+	void* data = malloc(total_size);
+	if (data == nullptr)
+	{
+		WARN_LOG(SAVESTATE, "Failed to load state - could not malloc %d bytes", total_size);
+		os_notify("Failed to load state", 5000, "Not enough memory");
+		if (zipFile.rawFile() == nullptr)
+			std::fclose(f);
+		else
+			zipFile.Close();
+		return;
+	}
+
+	size_t read_size;
+	if (zipFile.rawFile() != nullptr)
+	{
+		read_size = zipFile.Read(data, total_size);
+		zipFile.Close();
+	}
+	else
+	{
+		read_size = std::fread(data, 1, total_size, f);
+		std::fclose(f);
+	}
+	if (read_size != total_size)
+	{
+		WARN_LOG(SAVESTATE, "Failed to load state - I/O error");
+		os_notify("Failed to load state", 5000, "I/O error");
+		free(data);
+		return;
+	}
+
+	try {
+		Deserializer deser(data, total_size);
+		dc_loadstate(deser);
+		NOTICE_LOG(SAVESTATE, "Loaded state ver %d from %s size %d", deser.version(), filename.c_str(), total_size);
+		if (deser.size() != total_size)
+			// Note: this isn't true for RA savestates
+			WARN_LOG(SAVESTATE, "Savestate size %d but only %d bytes used", total_size, (int)deser.size());
+	}
+	catch (const Deserializer::Exception& e) {
 		ERROR_LOG(SAVESTATE, "%s", e.what());
 		os_notify("Failed to load state", 5000, e.what());
 	}

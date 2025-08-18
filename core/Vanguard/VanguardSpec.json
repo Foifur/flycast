@@ -1,0 +1,29 @@
+{
+  "VSpecConfig": {
+    "EmuEXE": "flycast.exe",
+    "NAME": "flycast",
+    "PROFILE": "flycast",
+    "OVERRIDE_DEFAULTMAXINTENSITY": 500000,
+    "SUPPORTS_RENDERING": false,
+    "SUPPORTS_CONFIG_MANAGEMENT": true,
+    "SUPPORTS_CONFIG_HANDOFF": true,
+    "SUPPORTS_KILLSWITCH": true,
+    "SUPPORTS_REALTIME": true,
+    "SUPPORTS_SAVESTATES": true,
+    "SUPPORTS_REFERENCES": true,
+    "SUPPORTS_MIXED_STOCKPILE": true
+  },
+  "MemoryDomainConfig": [
+    {
+      "Name": "Memory Domain",
+      "Profiles": [
+        "flycast"
+      ],
+      "BigEndian": true,
+      "Size": "0x017FFFFF",
+      "WordSize": 4,
+      "Offset": "0xC0000000",
+      "PeekPokeSel": 0
+    }
+  ]
+}

@@ -37,6 +37,9 @@ void flycast_term();
 void dc_exit();
 void dc_savestate(int index = 0, const u8 *pngData = nullptr, u32 pngSize = 0);
 void dc_loadstate(int index = 0);
+void dc_loadstate(Deserializer& deser);
+void dc_Vanguardsavestate(std::string path, const u8* pngData = nullptr, u32 pngSize = 0);
+void dc_Vanguardloadstate(std::string path);
 time_t dc_getStateCreationDate(int index);
 void dc_getStateScreenshot(int index, std::vector<u8>& pngData);
 
@@ -187,11 +190,7 @@ public:
 
 	void dc_reset(bool hard); // for tests only
 
-private:
-	bool checkStatus(bool wait = false);
-	void runInternal();
-	void diskChange();
-
+	// RTC_Hijack: move to public
 	enum State {
 		Uninitialized = 0,
 		Init,
@@ -201,6 +200,24 @@ private:
 		Terminated,
 	};
 	State state = Uninitialized;
+
+private:
+	bool checkStatus(bool wait = false);
+	void runInternal();
+	void diskChange();
+
+	// RTC_Hijack: move to public
+	/*
+	enum State {
+		Uninitialized = 0,
+		Init,
+		Loaded,
+		Running,
+		Error,
+		Terminated,
+	};
+	State state = Uninitialized;
+	*/
 	std::shared_future<void> threadResult;
 	bool resetRequested = false;
 	bool singleStep = false;

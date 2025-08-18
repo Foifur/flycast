@@ -50,6 +50,8 @@
 #include <windows.h>
 #include <windowsx.h>
 
+#include "..\Vanguard\VanguardHelpers.h" // RTC_Hijack
+
 static void setupPath()
 {
 #ifndef TARGET_UWP
@@ -344,6 +346,16 @@ int main(int argc, char* argv[])
 
 	if (flycast_init(argc, argv) != 0)
 		die("Flycast initialization failed");
+
+	// RTC_Hijack: get the emulator directory and call the initialize Vanguard function
+	std::string emuDir = getDirectory();
+	CallImportedFunction<void>((char*)"InitVanguard", emuDir);
+
+	for (int i = 0; i < argc; i++)
+	{
+		if ((std::string)argv[i] == "-CONSOLE")
+			CallImportedFunction<void>((char*)"SHOWCONSOLE");
+}
 
 #ifdef USE_BREAKPAD
 	nowide::stackstring nws;

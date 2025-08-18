@@ -21,7 +21,7 @@
 
 namespace elan {
 
-void init();
+    void init();
 void reset(bool hard);
 void term();
 
@@ -30,6 +30,9 @@ void vmem_map(u32 base);
 
 void serialize(Serializer& ser);
 void deserialize(Deserializer& deser);
+
+template<typename T> T DYNACALL read_elanram(u32 addr);
+template<typename T> void DYNACALL write_elanram(u32 addr, T data);
 
 extern u8 *RAM;
 extern u32 ERAM_SIZE;

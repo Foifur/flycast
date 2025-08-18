@@ -50,6 +50,8 @@
 #include "hw/sh4/sh4_interpreter.h"
 #include "hw/sh4/dyna/ngen.h"
 
+#include "..\Vanguard\VanguardHelpers.h" // RTC_Hijack
+
 settings_t settings;
 constexpr char const *BIOS_TITLE = "Dreamcast BIOS";
 
@@ -438,6 +440,7 @@ static void setPlatform(int platform)
 		settings.platform.aram_size = 2_MB;
 		settings.platform.bios_size = 2_MB;
 		settings.platform.flash_size = 128_KB;
+		VanguardClient::system_core = "Dreamcast"; // RTC_Hijack
 		break;
 	case DC_PLATFORM_NAOMI:
 		settings.platform.ram_size = 32_MB;
@@ -445,6 +448,7 @@ static void setPlatform(int platform)
 		settings.platform.aram_size = 8_MB;
 		settings.platform.bios_size = 2_MB;
 		settings.platform.flash_size = 32_KB;	// battery-backed ram
+		VanguardClient::system_core = "Naomi"; // RTC_Hijack
 		break;
 	case DC_PLATFORM_NAOMI2:
 		settings.platform.ram_size = 32_MB;
@@ -453,6 +457,7 @@ static void setPlatform(int platform)
 		settings.platform.bios_size = 2_MB;
 		settings.platform.flash_size = 32_KB;	// battery-backed ram
 		elan::ERAM_SIZE = 32_MB;
+		VanguardClient::system_core = "Naomi2"; // RTC_Hijack
 		break;
 	case DC_PLATFORM_ATOMISWAVE:
 		settings.platform.ram_size = 16_MB;
@@ -460,6 +465,7 @@ static void setPlatform(int platform)
 		settings.platform.aram_size = 2_MB;
 		settings.platform.bios_size = 128_KB;
 		settings.platform.flash_size = 128_KB;	// sram
+		VanguardClient::system_core = "Atomiswave"; // RTC_Hijack
 		break;
 	case DC_PLATFORM_SYSTEMSP:
 		settings.platform.ram_size = 32_MB;
@@ -467,6 +473,7 @@ static void setPlatform(int platform)
 		settings.platform.aram_size = 8_MB;
 		settings.platform.bios_size = 2_MB;
 		settings.platform.flash_size = 128_KB;	// sram
+		VanguardClient::system_core = "SystemSP"; // RTC_Hijack
 		break;
 	default:
 		die("Unsupported platform");
@@ -677,6 +684,10 @@ void Emulator::loadGame(const char *path, LoadProgress *progress)
 		}
 
 		state = Loaded;
+
+		// RTC_Hijack: call Vanguard function
+		CallImportedFunction<void>((char*)"LOADGAMEDONE", settings.content.title);
+
 	} catch (...) {
 		state = Error;
 		throw;
