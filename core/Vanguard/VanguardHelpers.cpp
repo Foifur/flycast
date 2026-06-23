@@ -231,10 +231,26 @@ std::string BSTRToString(BSTR string)
 
 std::string getDirectory()
 {
-  char buffer[MAX_PATH] = {0};
-  GetModuleFileNameA(NULL, buffer, MAX_PATH);
-  std::string::size_type pos = std::string(buffer).find_last_of("\\/");
-  return std::string(buffer).substr(0, pos);
+	wchar_t buffer[MAX_PATH];
+	DWORD length = GetModuleFileNameW(NULL, buffer, MAX_PATH);
+
+	if (length == 0)
+	{
+		return "ERROR";
+	}
+
+	int utf8_length = WideCharToMultiByte(CP_UTF8, 0, buffer, length, NULL, 0, NULL, NULL);
+
+	if (utf8_length == 0)
+	{
+		return "ERROR";
+	}
+
+	std::string utf8_string(utf8_length, '\0');
+	WideCharToMultiByte(CP_UTF8, 0, buffer, length, &utf8_string[0], utf8_length, NULL, NULL);
+
+	std::string::size_type pos = utf8_string.find_last_of("\\/");
+	return utf8_string.substr(0, pos);
 }
 
 // formats the saved settings into a JSON format
