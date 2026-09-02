@@ -53,12 +53,6 @@ bool mainui_rend_frame()
 		VanguardClient::load_savestate = false;
 	}
 
-	// RTC_Hijack: call Vanguard function
-	if (VanguardClient::ok_to_corestep)
-	{
-		CallImportedFunction<void>((char*)"CORESTEP");
-	}
-
 	os_DoEvents();
 	os_UpdateInputState();
 
@@ -74,6 +68,13 @@ bool mainui_rend_frame()
 		try {
 			if (!emu.render())
 				return false;
+
+			// RTC_Hijack: call Vanguard function
+			if (VanguardClient::ok_to_corestep)
+			{
+				CallImportedFunction<void>((char*)"CORESTEP");
+			}
+
 			if (config::ProfilerEnabled && config::ProfilerDrawToGUI)
 				gui_display_profiler();
 		} catch (const FlycastException& e) {
