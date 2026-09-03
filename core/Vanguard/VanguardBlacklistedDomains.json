@@ -1,0 +1,11 @@
+{
+    "__commentLine01": " This file is for specifying domains you may not want to be auto-selected    ",
+    "__commentLine02": " when the emulator is started. To use it, enter the name of the domain/VMD   ",
+    "__commentLine03": " that you wish to blacklist as it appears in the memory domains table. If    ",
+    "__commentLine04": " you are using more than one line, be sure to add a comma (,) to the end     ",
+    "__commentLine05": " of every line, EXCEPT FOR THE LAST.                                         ",
+    "MEMORYDOMAINS_BLACKLISTEDDOMAINS": [
+	    "DomainExample",
+	    "[V]VMDExample"
+    ]
+}

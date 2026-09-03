@@ -1,0 +1,111 @@
+{
+  "VSpecConfig": {
+    "EmuEXE": "flycast.exe",
+    "NAME": "flycast",
+    "PROFILE": "flycast",
+    "OVERRIDE_DEFAULTMAXINTENSITY": 500000,
+    "SUPPORTS_RENDERING": false,
+    "SUPPORTS_CONFIG_MANAGEMENT": true,
+    "SUPPORTS_CONFIG_HANDOFF": true,
+    "SUPPORTS_KILLSWITCH": true,
+    "SUPPORTS_REALTIME": true,
+    "SUPPORTS_SAVESTATES": true,
+    "SUPPORTS_REFERENCES": true,
+    "RELOAD_ON_SYNCSETTINGS":  false
+  },
+  "MemoryDomainConfig": [
+    {
+      "Name": "RAM",
+      "Profiles": [
+        "Dreamcast",
+        "Atomiswave"
+      ],
+      "RequiresReload":  false,
+      "BigEndian": false,
+      "Size": "0x01000000",
+      "WordSize": 4,
+      "Offset": "0x0C000000",
+      "PeekPokeSel": 0
+    },
+    {
+      "Name": "RAM",
+      "Profiles": [
+        "Naomi",
+        "Naomi2",
+        "SystemSP"
+      ],
+      "RequiresReload": false,
+      "BigEndian": false,
+      "Size": "0x02000000",
+      "WordSize": 4,
+      "Offset": "0x0C000000",
+      "PeekPokeSel": 0
+    },
+    {
+      "Name": "VRAM",
+      "Profiles": [
+        "Dreamcast",
+        "Atomiswave"
+      ],
+      "RequiresReload": false,
+      "BigEndian": false,
+      "Size": "0x00800000",
+      "WordSize": 4,
+      "Offset": "0x04000000",
+      "PeekPokeSel": 1
+    },
+    {
+      "Name": "VRAM",
+      "Profiles": [
+        "Naomi",
+        "Naomi2",
+        "SystemSP"
+      ],
+      "RequiresReload": false,
+      "BigEndian": false,
+      "Size": "0x01000000",
+      "WordSize": 4,
+      "Offset": "0x04000000",
+      "PeekPokeSel": 1
+    },
+    {
+      "Name": "AICA RAM",
+      "Profiles": [
+        "Dreamcast",
+        "Atomiswave"
+      ],
+      "RequiresReload": false,
+      "BigEndian": false,
+      "Size": "0x00200000",
+      "WordSize": 4,
+      "Offset": "0x20000000",
+      "PeekPokeSel": 2
+    },
+    {
+      "Name": "AICA RAM",
+      "Profiles": [
+        "Naomi",
+        "Naomi2",
+        "SystemSP"
+      ],
+      "RequiresReload": false,
+      "BigEndian": false,
+      "Size": "0x00800000",
+      "WordSize": 4,
+      "Offset": "0x20000000",
+      "PeekPokeSel": 2
+    },
+    {
+      "Name": "ELAN RAM",
+      "Profiles": [
+        "Naomi2"
+      ],
+      "RequiresReload": false,
+      "BigEndian": false,
+      "Size": "0x02000000",
+      "WordSize": 4,
+      "Offset": "0x0A000000",
+      "PeekPokeSel": 3
+    }
+  ]
+}
