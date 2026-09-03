@@ -30,7 +30,7 @@ else()
 	project(flycast)
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(NINTENDO_SWITCH)
 	set(CMAKE_CXX_EXTENSIONS ON)
@@ -1995,6 +1995,16 @@ if(USE_VANGUARD)
 			core/Vanguard/VanguardJsonParser.h
 			core/Vanguard/VanguardJsonParser.cpp
 			core/Vanguard/VanguardEmuSettings.h)
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy 
+		"$(SolutionDir)..\\core\\Vanguard\\VanguardConfig.json"
+		"$(OutDir)"
+		COMMAND ${CMAKE_COMMAND} -E copy 
+		"$(SolutionDir)..\\core\\Vanguard\\VanguardBlacklistedDomains.json"
+		"$(OutDir)"
+		COMMENT "Copying json files..."
+	)
+		
 endif()
 
 if(${CMAKE_GENERATOR} MATCHES "^Xcode.*|^Visual Studio.*")
